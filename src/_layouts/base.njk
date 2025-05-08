@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} | Tree13</title>
+  <meta name="description" content="{{ description }}">
+  {# Link to the compiled CSS file #}
+  <link rel="stylesheet" href="/css/output.css">
+  {# Add other head elements like favicons here #}
+</head>
+<body>
+  <div class="flex flex-col min-h-screen max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    {% include "header.njk" %} {# Include header partial #}
+    
+    <main class="flex-grow py-12">
+      {{ content | safe }} {# Page content will be rendered here #}
+    </main>
+
+    {% include "footer.njk" %} {# Include footer partial #}
+  </div>
+</body>
+</html> 

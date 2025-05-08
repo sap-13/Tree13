@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add custom base styles or variables here if needed later */
+body {
+    /* Basic dark mode colors - can refine later */
+    @apply bg-neutral-950 text-neutral-100 antialiased;
+}
+
+.dark body { /* Ensure dark mode applies */
+     @apply bg-neutral-950 text-neutral-100;
+}
+
+/* Basic prose dark mode styling */
+.dark .prose {
+    @apply prose-invert;
+}
+
+.prose code::before,
+.prose code::after {
+  content: none;
+} 
