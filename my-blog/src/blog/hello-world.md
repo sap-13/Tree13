@@ -3,6 +3,7 @@ layout: post.njk
 title: Hello World
 date: 2025-05-10
 tags: ["post", "tech"]
+excerpt: Welcome to my new blog! This is a custom preview that will appear on the homepage and in search results.
 ---
 
 # Hello World

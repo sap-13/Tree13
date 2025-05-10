@@ -55,6 +55,13 @@ title: Search
     fetch('./searchIndex.json')
       .then(response => {
         if (!response.ok) {
+          // Try with the alternative path for GitHub Pages
+          return fetch('/Tree13/searchIndex.json');
+        }
+        return response;
+      })
+      .then(response => {
+        if (!response.ok) {
           throw new Error('Failed to load search index');
         }
         return response.json();
@@ -184,7 +191,7 @@ title: Search
           
           const excerpt = document.createElement('p');
           excerpt.className = 'text-gray-300';
-          excerpt.textContent = post.content.substring(0, 150) + '...';
+          excerpt.textContent = post.excerpt || post.content.substring(0, 150) + '...';
           
           postEl.appendChild(title);
           postEl.appendChild(date);
