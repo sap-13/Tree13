@@ -1,0 +1,9 @@
+[
+  {
+    "title": "Hello World",
+    "url": "/blog/hello-world/",
+    "content": "Hello World Welcome to my new blog! Why I Started This Blog I wanted a simple platform to share my thoughts and experiences. This blog will focus on technology, design, and personal reflections. About the Tech Stack This blog is built with: Eleventy - A simple static site generator Tailwind CSS - A...",
+    "tags": ["tech"],
+    "date": "2025-05-10"
+  }
+] 

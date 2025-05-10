@@ -1,13 +1,13 @@
 ---
 layout: post.njk
 title: Hello World
-date: 2024-06-01
+date: 2025-05-10
 tags: ["post", "tech"]
 ---
 
 # Hello World
 
-Welcome to my new blog! This is the first post on my new minimalist blog built with Eleventy and Tailwind CSS.
+Welcome to my new blog! 
 
 ## Why I Started This Blog
 

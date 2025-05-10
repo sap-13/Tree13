@@ -1,0 +1,15 @@
+---
+permalink: /searchIndex.json
+eleventyExcludeFromCollections: true
+---
+[
+{%- for post in collections.post %}
+  {
+    "title": "{{ post.data.title }}",
+    "url": "{{ post.url }}",
+    "content": "{{ post.templateContent | striptags | escape | truncate(300) }}",
+    "tags": [{% for tag in post.data.tags %}{% if tag != "post" %}"{{ tag }}"{% if not loop.last %},{% endif %}{% endif %}{% endfor %}],
+    "date": "{{ post.date | date('YYYY-MM-DD') }}"
+  }{% if not loop.last %},{% endif %}
+{%- endfor %}
+] 
