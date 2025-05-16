@@ -27,185 +27,291 @@ title: Search
   <div id="search-results" class="space-y-8">
     <!-- Results will be inserted here -->
     <p id="no-results" class="text-gray-400">Loading search index...</p>
+    <div id="results-container" class="space-y-8">
+      <!-- Actual search results will be inserted here -->
+    </div>
   </div>
 </div>
 
 <!-- Search functionality -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('search-input');
-    const resultsContainer = document.getElementById('search-results');
-    const noResults = document.getElementById('no-results');
-    const tagFiltersContainer = document.getElementById('tag-filters');
-    let searchData = [];
-    let searchDebounceTimer = null;
-    
-    // Function to get URL parameters
-    function getUrlParameter(name) {
-      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-      const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-      const results = regex.exec(location.search);
-      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-    }
-    
-    // Check if we have a tag parameter in URL
-    const urlTag = getUrlParameter('tag');
-    
-    // Fetch the search index asynchronously
-    fetch('./searchIndex.json')
-      .then(response => {
-        if (!response.ok) {
-          // Try with the alternative path for GitHub Pages
-          return fetch('/Tree13/searchIndex.json');
+    try {
+      const searchInput = document.getElementById('search-input');
+      const resultsContainer = document.getElementById('search-results');
+      const noResults = document.getElementById('no-results');
+      const tagFiltersContainer = document.getElementById('tag-filters');
+      let searchData = [];
+      let searchDebounceTimer = null;
+      
+      // Helper function to get the correct URL for both local and GitHub Pages environments
+      function getCorrectUrl(url) {
+        if (!url) return '#';
+        
+        // If already has the prefix or is an external URL, return as is
+        if (url.includes('/Tree13/') || url.startsWith('http')) {
+          return url;
         }
-        return response;
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to load search index');
+        
+        // Check if we're on GitHub Pages
+        if (window.location.hostname === 'sap-13.github.io' || window.location.hostname.includes('github.io')) {
+          // Prepend the repository name to the URL
+          return '/Tree13' + url;
         }
-        return response.json();
-      })
-      .then(data => {
-        searchData = data;
         
-        // Extract all unique tags
-        const allTags = [...new Set(searchData.flatMap(post => post.tags))];
-        
-        // Create tag filter buttons
-        allTags.forEach(tag => {
-          const tagBtn = document.createElement('button');
-          tagBtn.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-            </svg>
-            ${tag}
-          `;
-          tagBtn.className = 'px-3 py-1 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 transition inline-flex items-center text-xs';
-          tagBtn.dataset.tag = tag;
-          
-          // If this tag matches the URL parameter, activate it
-          if (urlTag && urlTag.toLowerCase() === tag.toLowerCase()) {
-            tagBtn.classList.add('bg-blue-600');
-            tagBtn.classList.remove('bg-gray-800');
-          }
-          
-          tagBtn.addEventListener('click', () => {
-            tagBtn.classList.toggle('bg-blue-600');
-            tagBtn.classList.toggle('bg-gray-800');
-            performSearch();
-            
-            // Update URL without reloading page
-            const selectedTags = Array.from(tagFiltersContainer.querySelectorAll('.bg-blue-600'))
-              .map(btn => btn.dataset.tag);
-            
-            if (selectedTags.length === 1) {
-              history.replaceState(null, '', `?tag=${selectedTags[0]}`);
-            } else if (selectedTags.length === 0) {
-              history.replaceState(null, '', window.location.pathname);
-            }
-          });
-          
-          tagFiltersContainer.appendChild(tagBtn);
-        });
-        
-        // Set up search input debounce
-        searchInput.addEventListener('input', () => {
-          clearTimeout(searchDebounceTimer);
-          searchDebounceTimer = setTimeout(performSearch, 300); // 300ms debounce
-        });
-        
-        // Initial search
-        performSearch();
-      })
-      .catch(error => {
-        console.error('Error loading search index:', error);
-        noResults.textContent = 'Failed to load search index. Please try refreshing the page.';
-      });
-    
-    function performSearch() {
-      const query = searchInput.value.toLowerCase();
+        // For local development, use the URL as is
+        return url;
+      }
       
-      // Get selected tags
-      const selectedTags = Array.from(tagFiltersContainer.querySelectorAll('.bg-blue-600'))
-        .map(btn => btn.dataset.tag);
-      
-      // Filter posts based on query and selected tags
-      const filteredPosts = searchData.filter(post => {
-        const matchesQuery = query === '' || 
-          post.title.toLowerCase().includes(query) || 
-          post.content.toLowerCase().includes(query);
-          
-        const matchesTags = selectedTags.length === 0 || 
-          selectedTags.every(tag => post.tags.includes(tag));
-          
-        return matchesQuery && matchesTags;
-      });
-      
-      // Clear previous results
-      while (resultsContainer.firstChild) {
-        if (resultsContainer.firstChild !== noResults) {
-          resultsContainer.removeChild(resultsContainer.firstChild);
+      // Function to get URL parameters
+      function getUrlParameter(name) {
+        try {
+          name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+          const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+          const results = regex.exec(location.search);
+          return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        } catch (e) {
+          console.error('Error getting URL parameter:', e);
+          return '';
         }
       }
       
-      // Display results or no results message
-      if (filteredPosts.length > 0) {
-        noResults.style.display = 'none';
-        
-        filteredPosts.forEach(post => {
-          const postEl = document.createElement('article');
-          postEl.className = 'border-b border-gray-800 pb-6';
-          
-          const title = document.createElement('h2');
-          title.className = 'text-2xl font-bold mb-2 text-white';
-          
-          const link = document.createElement('a');
-          link.href = post.url;
-          link.textContent = post.title;
-          link.className = 'hover:text-blue-400 transition';
-          title.appendChild(link);
-          
-          const date = document.createElement('p');
-          date.className = 'text-gray-400 text-sm mb-2';
-          date.textContent = new Date(post.date).toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          });
-          
-          const tagsContainer = document.createElement('div');
-          tagsContainer.className = 'flex flex-wrap gap-2 mb-3';
-          
-          post.tags.forEach(tag => {
-            const tagSpan = document.createElement('span');
-            tagSpan.innerHTML = `
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
-              ${tag}
-            `;
-            tagSpan.className = 'px-2 py-1 text-xs rounded bg-gray-800 text-gray-300 inline-flex items-center';
-            tagsContainer.appendChild(tagSpan);
-          });
-          
-          const excerpt = document.createElement('p');
-          excerpt.className = 'text-gray-300';
-          excerpt.textContent = post.excerpt || post.content.substring(0, 150) + '...';
-          
-          postEl.appendChild(title);
-          postEl.appendChild(date);
-          postEl.appendChild(tagsContainer);
-          postEl.appendChild(excerpt);
-          
-          resultsContainer.insertBefore(postEl, noResults);
-        });
+      // Check if we have a tag parameter in URL
+      const urlTag = getUrlParameter('tag');
+      
+      // Get the base URL for the site
+      const baseUrl = window.location.pathname.endsWith('/') 
+        ? window.location.pathname.slice(0, -'/search/'.length)
+        : window.location.pathname.slice(0, -'/search/index.html'.length);
+      
+      // Fetch the search index asynchronously using relative path
+      console.log('Attempting to fetch search index...');
+      console.log('Current path:', window.location.pathname);
+      
+      // Determine the correct path to searchIndex.json
+      // This handles both GitHub Pages (/Tree13/searchIndex.json) and local development (/searchIndex.json)
+      let searchIndexPath;
+      if (window.location.hostname === 'sap-13.github.io' || window.location.hostname.includes('github.io')) {
+        // On GitHub Pages - use the absolute path with repo name
+        searchIndexPath = '/Tree13/searchIndex.json'; 
+      } else if (window.location.pathname.includes('/search/')) {
+        // Local development from /search/ path - use relative path 
+        searchIndexPath = '../searchIndex.json'; 
       } else {
-        noResults.style.display = 'block';
-        noResults.textContent = query === '' && selectedTags.length === 0 
-          ? 'No posts available.' 
-          : 'No posts found matching your search criteria.';
+        // Default - use absolute path from root
+        searchIndexPath = '/searchIndex.json';
       }
+      
+      console.log('Using searchIndexPath:', searchIndexPath);
+      
+      try {
+        // Try the determined path
+        fetch(searchIndexPath)
+          .then(response => {
+            console.log('First fetch attempt response:', response.status);
+            if (!response.ok) {
+              // If that fails, try absolute path as fallback
+              console.log('Falling back to absolute path...');
+              return fetch('/searchIndex.json');
+            }
+            return response;
+          })
+          .then(response => {
+            console.log('Final fetch response:', response.status);
+            if (!response.ok) {
+              console.error('Failed to load search index');
+              throw new Error('Failed to load search index');
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Search data loaded:', data);
+            searchData = data;
+            
+            // Extract all unique tags
+            const allTags = [...new Set(searchData.flatMap(post => post.tags ? post.tags : []))];
+            console.log('Extracted tags:', allTags);
+            
+            console.log('[LOG] About to start allTags.forEach loop.');
+            allTags.forEach(tag => {
+              console.log(`[LOG] Tag loop: Start for tag '${tag}'.`);
+              const tagBtn = document.createElement('button');
+              console.log(`[LOG] Tag loop: Created button for '${tag}'.`);
+              tagBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                ${tag}
+              `;
+              console.log(`[LOG] Tag loop: Set innerHTML for '${tag}'.`);
+              tagBtn.className = 'px-3 py-1 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 transition inline-flex items-center text-xs';
+              tagBtn.dataset.tag = tag;
+              console.log(`[LOG] Tag loop: Set className and dataset for '${tag}'.`);
+              
+              if (urlTag && urlTag.toLowerCase() === tag.toLowerCase()) {
+                console.log(`[LOG] Tag loop: Activating tag '${tag}' from URL param.`);
+                tagBtn.classList.add('bg-blue-600');
+                tagBtn.classList.remove('bg-gray-800');
+              }
+              
+              console.log(`[LOG] Tag loop: About to add click listener for '${tag}'.`);
+              tagBtn.addEventListener('click', () => {
+                console.log(`[LOG] Tag '${tag}' clicked.`);
+                tagBtn.classList.toggle('bg-blue-600');
+                tagBtn.classList.toggle('bg-gray-800');
+                performSearch();
+                
+                const selectedTags = Array.from(tagFiltersContainer.querySelectorAll('.bg-blue-600'))
+                  .map(btn => btn.dataset.tag);
+                
+                if (selectedTags.length === 1) {
+                  history.replaceState(null, '', `?tag=${selectedTags[0]}`);
+                } else if (selectedTags.length === 0) {
+                  history.replaceState(null, '', window.location.pathname);
+                }
+              });
+              console.log(`[LOG] Tag loop: Added click listener for '${tag}'.`);
+              
+              tagFiltersContainer.appendChild(tagBtn);
+              console.log(`[LOG] Tag loop: Appended button for '${tag}' to DOM.`);
+              console.log(`[LOG] Tag loop: End for tag '${tag}'.`);
+            });
+            console.log('[LOG] Finished allTags.forEach loop.');
+            
+            // Set up search input debounce
+            console.log('[LOG] About to add input listener to searchInput.');
+            searchInput.addEventListener('input', () => {
+              clearTimeout(searchDebounceTimer);
+              searchDebounceTimer = setTimeout(performSearch, 300); // 300ms debounce
+            });
+            console.log('[LOG] Added input listener to searchInput.');
+            
+            // Initial search
+            console.log('[LOG] About to call initial performSearch().');
+            performSearch();
+            console.log('[LOG] Initial performSearch() call returned.');
+          })
+          .catch(error => {
+            console.error('Error loading search index:', error);
+            noResults.textContent = 'Failed to load search index. Please try refreshing the page.';
+          });
+      } catch (error) {
+        console.error('Fatal error in fetch operation:', error);
+        noResults.textContent = 'A serious error occurred. Please try refreshing the page.';
+      }
+      
+      function performSearch() {
+        console.log('[LOG] performSearch: Entered function.');
+        try {
+          const query = searchInput.value.toLowerCase();
+          console.log(`[LOG] performSearch: Query is '${query}'.`);
+          
+          const selectedTags = Array.from(tagFiltersContainer.querySelectorAll('.bg-blue-600'))
+            .map(btn => btn.dataset.tag);
+          console.log('[LOG] performSearch: Selected tags are:', selectedTags);
+          
+          if (!searchData || !Array.isArray(searchData)) {
+            console.error('[LOG] performSearch: Search data is invalid:', searchData);
+            noResults.style.display = 'block';
+            noResults.textContent = 'Search data could not be loaded properly.';
+            return;
+          }
+          console.log('[LOG] performSearch: Search data is valid.');
+          
+          const filteredPosts = searchData.filter(post => {
+            if (!post) return false;
+            
+            const matchesQuery = query === '' || 
+              (post.title && post.title.toLowerCase().includes(query)) || 
+              (post.content && post.content.toLowerCase().includes(query));
+              
+            const matchesTags = selectedTags.length === 0 || 
+              (post.tags && selectedTags.every(tag => post.tags.includes(tag)));
+              
+            return matchesQuery && matchesTags;
+          });
+          console.log(`[LOG] performSearch: Found ${filteredPosts.length} filtered posts.`);
+          
+          // Clear previous results - completely different approach
+          console.log('[LOG] performSearch: About to clear previous results.');
+          const resultsContainer = document.getElementById('results-container');
+          
+          // Simply replace the entire content
+          if (filteredPosts.length > 0) {
+            noResults.style.display = 'none';
+            
+            // Build HTML string
+            let resultsHTML = '';
+            console.log('[LOG] performSearch: About to build results HTML.');
+            
+            filteredPosts.forEach(post => {
+              console.log(`[LOG] performSearch: Building HTML for post '${post ? post.title : "UNKNOWN"}'.`);
+              try {
+                if (!post || typeof post !== 'object') {
+                  console.warn('Skipping invalid post object:', post);
+                  return;
+                }
+                
+                resultsHTML += `
+                  <article class="border-b border-gray-800 pb-6">
+                    <h2 class="text-2xl font-bold mb-2 text-white">
+                      <a href="${getCorrectUrl(post.url) || '#'}" class="hover:text-blue-400 transition">
+                        ${post.title || 'Untitled Post'}
+                      </a>
+                    </h2>
+                    <p class="text-gray-400 text-sm mb-2">${new Date(post.date).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}</p>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                      ${post.tags && Array.isArray(post.tags) ? 
+                        post.tags.map(tag => `
+                          <span class="px-2 py-1 text-xs rounded bg-gray-800 text-gray-300 inline-flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            ${tag || 'untagged'}
+                          </span>
+                        `).join('') : ''
+                      }
+                    </div>
+                    <p class="text-gray-300">${post.excerpt || (post.content ? post.content.substring(0, 150) + (post.content.length > 150 ? '...' : '') : 'No content available.')}</p>
+                  </article>
+                `;
+              } catch (e) {
+                console.error('[LOG] performSearch: Error building HTML for post:', post ? post.title : 'Unknown Post', e);
+              }
+            });
+            
+            console.log('[LOG] performSearch: Done building results HTML, about to update DOM.');
+            
+            // Update the DOM once, not in a loop
+            try {
+              resultsContainer.innerHTML = resultsHTML;
+              console.log('[LOG] performSearch: DOM updated successfully.');
+            } catch (e) {
+              console.error('[LOG] performSearch: Error updating DOM with results HTML:', e);
+            }
+            
+          } else {
+            noResults.style.display = 'block';
+            resultsContainer.innerHTML = ''; // Clear any previous results
+            noResults.textContent = query === '' && selectedTags.length === 0 
+              ? 'No posts available.' 
+              : 'No posts found matching your search criteria.';
+            console.log('[LOG] performSearch: Displayed no results message.');
+          }
+          console.log('[LOG] performSearch: Cleared previous results.');
+        } catch (e) {
+          console.error('[LOG] performSearch: Major error in performSearch itself:', e);
+          noResults.textContent = 'An error occurred in the search function. Please try refreshing.';
+        }
+        console.log('[LOG] performSearch: Exiting function.');
+      }
+    } catch (e) {
+      console.error('Error in search functionality:', e);
+      noResults.textContent = 'An error occurred. Please try refreshing the page.';
     }
   });
 </script> 
