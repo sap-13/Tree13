@@ -42,18 +42,19 @@ jobs:
           npx @11ty/eleventy --pathprefix=Tree13
       - name: Debug - Check built files
         run: |
-          echo "=== Checking built CSS and JS paths ==="
-          grep -r "href=\"" my-blog/_site/index.html | grep -E "css|js"
-          echo "=== Checking navigation links ==="
-          grep -r "href=\"" my-blog/_site/index.html | grep -v "css\|js\|font"
+          echo "=== Directory structure ==="
+          find my-blog/_site -type d | sort
+          echo "=== CSS file check ==="
+          ls -la my-blog/_site/static/css
           echo "=== First 15 lines of index.html ==="
           head -n 15 my-blog/_site/index.html
+          echo "=== Checking link paths ==="
+          grep -r "href=\"" my-blog/_site/index.html | head -10
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload the built site from my-blog/_site
           path: 'my-blog/_site'
       - name: Deploy to GitHub Pages
         id: deployment
