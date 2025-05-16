@@ -16,6 +16,11 @@ module.exports = function(eleventyConfig) {
   // Ensure our compiled CSS is copied
   eleventyConfig.addPassthroughCopy("src/css/output.css"); 
   eleventyConfig.addPassthroughCopy("src/static"); // For images, fonts etc.
+  
+  // Add a .nojekyll file
+  eleventyConfig.addPassthroughCopy({
+    "./.nojekyll": "./.nojekyll"
+  });
 
   // === Markdown Processing ===
   // Use markdown-it with HTML enabled

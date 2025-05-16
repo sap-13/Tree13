@@ -36,10 +36,18 @@ jobs:
         with:
           node-version: '18'
       - name: Install dependencies and build
+        working-directory: ./my-blog
         run: |
-          cd my-blog
           npm install
-          npx @11ty/eleventy
+          npx @11ty/eleventy --pathprefix=Tree13
+      - name: Debug - Check built files
+        run: |
+          echo "=== Checking built CSS and JS paths ==="
+          grep -r "href=\"" my-blog/_site/index.html | grep -E "css|js"
+          echo "=== Checking navigation links ==="
+          grep -r "href=\"" my-blog/_site/index.html | grep -v "css\|js\|font"
+          echo "=== First 15 lines of index.html ==="
+          head -n 15 my-blog/_site/index.html
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

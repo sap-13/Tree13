@@ -14,6 +14,11 @@ module.exports = function(eleventyConfig) {
   // === Passthrough Copy ===
   // Copy static assets to the output directory
   eleventyConfig.addPassthroughCopy("src/static"); // For images, fonts etc.
+  
+  // Add a .nojekyll file
+  eleventyConfig.addPassthroughCopy({
+    "./.nojekyll": "./.nojekyll"
+  });
 
   // === Custom Filters ===
   // Date formatting
@@ -46,6 +51,14 @@ module.exports = function(eleventyConfig) {
   );
   eleventyConfig.setLibrary("njk", nunjucksEnvironment);
 
+  // === Filter to add pathPrefix to URLs ===
+  eleventyConfig.addFilter("url", function(url) {
+    if (url.startsWith("/")) {
+      return "/Tree13" + url;
+    }
+    return url;
+  });
+
   // === Watch Targets ===
   // Watch Tailwind config and input CSS for changes
   eleventyConfig.addWatchTarget("./tailwind.config.js");
@@ -53,6 +66,7 @@ module.exports = function(eleventyConfig) {
 
   // === Directory Configuration ===
   return {
+    pathPrefix: "/Tree13/", // Set base path for GitHub Pages
     dir: {
       input: "src",          // Source files directory
       includes: "_includes",  // Nunjucks partials directory
