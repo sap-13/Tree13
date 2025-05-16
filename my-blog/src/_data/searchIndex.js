@@ -1,6 +1,9 @@
-module.exports = function(collection) {
-  // Get all blog posts - updated for Eleventy 3.0
-  let blogposts = collection.filter(item => {
+module.exports = function(collections) {
+  // In Eleventy 3.0, we need to use collections.getAll() first
+  const allItems = collections.getAll ? collections.getAll() : [];
+  
+  // Then filter for posts
+  let blogposts = allItems.filter(item => {
     return item.data.tags && item.data.tags.includes('post');
   });
   
