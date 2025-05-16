@@ -38,6 +38,7 @@ module.exports = function(eleventyConfig) {
 
   // === Directory Configuration ===
   return {
+    pathPrefix: "/Tree13/", // Set base path for GitHub Pages
     dir: {
       input: "src",          // Source files directory
       includes: "_includes",  // Nunjucks partials directory
