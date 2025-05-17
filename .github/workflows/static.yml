@@ -1,5 +1,5 @@
 # Simple workflow for deploying static content to GitHub Pages
-name: Deploy to GitHub Pages
+name: Build and Deploy
 
 on:
   # Runs on pushes targeting the default branch
@@ -22,38 +22,54 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        working-directory: ./my-blog
+        run: npm install
+          
+      - name: Build with Eleventy
+        working-directory: ./my-blog
+        run: npx @11ty/eleventy
+          
+      - name: Process URLs for GitHub Pages
+        run: |
+          echo "Processing URLs for GitHub Pages deployment..."
+          cd my-blog/_site
+          
+          # Add Tree13 prefix to URLs in HTML files (same as original script)
+          find . -name "*.html" -type f -exec sed -i 's|href="/|href="/Tree13/|g' {} \;
+          find . -name "*.html" -type f -exec sed -i 's|src="/|src="/Tree13/|g' {} \;
+          
+          # Fix searchIndex.json
+          if [ -f "searchIndex.json" ]; then
+            sed -i 's|"url":"/|"url":"/Tree13/|g' "searchIndex.json"
+          fi
+          
+          # Create .nojekyll file
+          touch .nojekyll
+      
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: my-blog/_site
+
   deploy:
+    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        
-      - name: Prepare site files
-        run: |
-          # Fix paths in HTML files to ensure they work in the correct location
-          cd my-blog/_site
-          find . -name "*.html" -type f -exec sed -i 's|/Tree13/my-blog/_site/|/Tree13/|g' {} \;
-          find . -name "*.html" -type f -exec sed -i 's|href="/static/|href="/Tree13/static/|g' {} \;
-          find . -name "*.html" -type f -exec sed -i 's|src="/static/|src="/Tree13/static/|g' {} \;
-          
-          # Ensure search index has correct paths
-          if [ -f "searchIndex.json" ]; then
-            sed -i 's|/my-blog/_site/|/|g' searchIndex.json
-          fi
-        
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-        
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload only the built site from my-blog/_site
-          path: 'my-blog/_site'
-          
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

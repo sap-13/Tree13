@@ -1,18 +1,20 @@
 # Tree13
 
-A minimalist dark-themed blog built with Eleventy and Tailwind CSS. GitHub Pages instructions below.
+A minimalist dark-themed blog built with Eleventy and Tailwind CSS.
 
 ## GitHub Pages Configuration
 
-To properly serve this site on GitHub Pages:
+This site is configured to deploy directly from the `main` branch using GitHub Actions:
 
-1. Go to the repository settings on GitHub
-2. Navigate to "Pages" in the sidebar
-3. Under "Build and deployment" > "Source", select "Deploy from a branch" (not GitHub Actions)
-4. Then under "Branch", select "gh-pages" and "/ (root)"
-5. Click "Save"
+1. The site is built using Eleventy in the workflow
+2. All URLs are processed to include the `/Tree13/` prefix
+3. The built site is deployed using GitHub Pages
 
-This will ensure the site is served correctly from the gh-pages branch, which contains the properly built static files with all paths configured properly.
+GitHub Pages Settings:
+- Go to your repository settings on GitHub
+- Navigate to "Pages" in the sidebar
+- Under "Build and deployment" > "Source", select "GitHub Actions"
+- This will use the workflow defined in `.github/workflows/static.yml`
 
 ## Development
 
@@ -26,10 +28,9 @@ npx @11ty/eleventy --serve
 
 ## Deployment
 
-To deploy to GitHub Pages:
+Just push your changes to the `main` branch and the GitHub Actions workflow will automatically build and deploy the site to GitHub Pages.
 
-```bash
-./deploy-to-gh-pages.sh
-```
-
-This script builds the site, processes paths for GitHub Pages hosting, and pushes to the gh-pages branch. 
+The workflow:
+1. Builds the site using Eleventy
+2. Processes paths for GitHub Pages hosting
+3. Deploys to GitHub Pages without using a separate gh-pages branch 
