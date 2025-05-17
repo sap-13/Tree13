@@ -1,0 +1,6 @@
+---
+# GitHub Pages configuration
+source: my-blog/_site
+baseurl: /Tree13
+url: https://sap-13.github.io
+encoding: UTF-8 

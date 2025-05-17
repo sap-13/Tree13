@@ -32,29 +32,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         
-      - name: Show directory structure
+      - name: Prepare site files
         run: |
-          echo "=== Repository structure ==="
-          ls -la
-          echo "=== My-blog site structure ==="
-          find my-blog/_site -type f -name "index.html" | sort
+          # Copy search-fix.js to the root of the site directory
+          cp my-blog/_site/search-fix.js my-blog/_site/
+          
+          # Revert any lingering my-blog/_site paths
+          cd my-blog/_site
+          find . -name "*.html" -type f -exec sed -i 's|/Tree13/my-blog/_site/|/Tree13/|g' {} \;
+          find . -name "*.html" -type f -exec sed -i 's|href="/static/|href="/Tree13/static/|g' {} \;
+          find . -name "*.html" -type f -exec sed -i 's|src="/static/|src="/Tree13/static/|g' {} \;
         
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        
-      - name: Fix paths back to original format
-        run: |
-          cd my-blog/_site
-          echo "Reverting paths in HTML files back to /Tree13/ format..."
-          find . -name "*.html" -type f | while read -r file; do
-            echo "Processing $file..."
-            sed -i 's|href="/Tree13/my-blog/_site/|href="/Tree13/|g' "$file"
-            sed -i 's|src="/Tree13/my-blog/_site/|src="/Tree13/|g' "$file"
-          done
-          if [ -f "searchIndex.json" ]; then
-            echo "Fixing searchIndex.json..."
-            sed -i 's|/Tree13/my-blog/_site/|/Tree13/|g' "searchIndex.json"
-          fi
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
