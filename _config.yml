@@ -1,6 +1,7 @@
 ---
 # GitHub Pages configuration
-source: my-blog/_site
-baseurl: /Tree13
+# This configuration tells GitHub Pages to use the root of the gh-pages branch
+# No special source directory setting needed when using gh-pages branch
 url: https://sap-13.github.io
+baseurl: /Tree13
 encoding: UTF-8 
