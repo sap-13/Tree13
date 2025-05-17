@@ -36,16 +36,31 @@ jobs:
         run: |
           echo "=== Repository structure ==="
           ls -la
-          echo "=== Content of the repository root ==="
-          find . -maxdepth 1 -type f
+          echo "=== My-blog site structure ==="
+          find my-blog/_site -type f -name "index.html" | sort
         
       - name: Setup Pages
         uses: actions/configure-pages@v5
         
+      - name: Fix paths back to original format
+        run: |
+          cd my-blog/_site
+          echo "Reverting paths in HTML files back to /Tree13/ format..."
+          find . -name "*.html" -type f | while read -r file; do
+            echo "Processing $file..."
+            sed -i 's|href="/Tree13/my-blog/_site/|href="/Tree13/|g' "$file"
+            sed -i 's|src="/Tree13/my-blog/_site/|src="/Tree13/|g' "$file"
+          done
+          if [ -f "searchIndex.json" ]; then
+            echo "Fixing searchIndex.json..."
+            sed -i 's|/Tree13/my-blog/_site/|/Tree13/|g' "searchIndex.json"
+          fi
+        
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          # Upload only the built site from my-blog/_site
+          path: 'my-blog/_site'
           
       - name: Deploy to GitHub Pages
         id: deployment

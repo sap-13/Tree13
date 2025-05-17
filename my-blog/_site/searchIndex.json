@@ -1,10 +1,12 @@
 [
   {
     "title": "Hello World",
-    "url": "/blog/hello-world/",
+    "url": "/Tree13/blog/hello-world/",
     "content": "Hello World Welcome to my new blog! Why I Started This Blog I wanted a simple platform to share my thoughts and experiences. This blog will focus on technology, design, and personal reflections. About the Tech Stack This blog is built with: Eleventy - A simple static site generator Tailwind CSS - A...",
     "excerpt": "Welcome to my new blog! This is a custom preview that will appear on the homepage and in search results.",
-    "tags": ["tech"],
+    "tags": [
+      "tech"
+    ],
     "date": "2025-05-10"
   }
-] 
+]
