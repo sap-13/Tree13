@@ -94,25 +94,23 @@ title: Search
       if (window.location.hostname === 'sap-13.github.io' || window.location.hostname.includes('github.io')) {
         // On GitHub Pages - use the absolute path with repo name
         searchIndexPath = '/Tree13/searchIndex.json'; 
-      } else if (window.location.pathname.includes('/search/')) {
-        // Local development from /search/ path - use relative path 
-        searchIndexPath = '../searchIndex.json'; 
       } else {
-        // Default - use absolute path from root
+        // Local development - use root-relative path
         searchIndexPath = '/searchIndex.json';
       }
       
       console.log('Using searchIndexPath:', searchIndexPath);
       
       try {
-        // Try the determined path
+        // Fetch the search index
         fetch(searchIndexPath)
           .then(response => {
-            console.log('First fetch attempt response:', response.status);
+            console.log('Search index fetch response:', response.status);
             if (!response.ok) {
-              // If that fails, try absolute path as fallback
-              console.log('Falling back to absolute path...');
-              return fetch('/searchIndex.json');
+              // If the primary path fails, try an alternate path
+              console.log('First path failed, trying alternative path...');
+              // Try relative path as fallback
+              return fetch('../searchIndex.json');
             }
             return response;
           })
