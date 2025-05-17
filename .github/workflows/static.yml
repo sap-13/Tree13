@@ -46,21 +46,25 @@ jobs:
           echo "Processing URLs for GitHub Pages deployment..."
           cd my-blog/_site
           
-          # Add Tree13 prefix to URLs in HTML files
-          find . -name "*.html" -type f -exec sed -i 's|href="/|href="/Tree13/|g' {} \;
-          find . -name "*.html" -type f -exec sed -i 's|src="/|src="/Tree13/|g' {} \;
+          # Add Tree13 prefix to URLs in HTML files, but avoid double prefixing
+          find . -name "*.html" -type f -exec sed -i 's|href="/\([^T]\)|href="/Tree13/\1|g' {} \;
+          find . -name "*.html" -type f -exec sed -i 's|src="/\([^T]\)|src="/Tree13/\1|g' {} \;
+          
+          # Ensure CSS files are properly referenced
+          echo "Checking CSS file references..."
+          find . -name "*.html" -type f -exec grep -l "href=\"/static/css" {} \; | xargs -I{} sed -i 's|href="/static/css|href="/Tree13/static/css|g' {}
           
           # Fix searchIndex.json URLs - ensure this file exists and is processed correctly
           if [ -f "searchIndex.json" ]; then
             echo "Processing searchIndex.json"
-            sed -i 's|"url":"/|"url":"/Tree13/|g' searchIndex.json
+            sed -i 's|"url":"/\([^T]\)|"url":"/Tree13/\1|g' searchIndex.json
             
-            # Verify the file was properly processed
-            grep -q '"url":"/Tree13/' searchIndex.json || echo "WARNING: searchIndex.json URL processing may have failed"
-            cat searchIndex.json | head -10 # Debug output
+            # Debug output
+            echo "First 10 lines of searchIndex.json:"
+            head -10 searchIndex.json
           else
             echo "ERROR: searchIndex.json not found in _site directory!"
-            ls -la # Debug output to show directory contents
+            ls -la
           fi
           
           # Create .nojekyll file

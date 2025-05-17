@@ -55,8 +55,12 @@ title: Search
         
         // Check if we're on GitHub Pages
         if (window.location.hostname === 'sap-13.github.io' || window.location.hostname.includes('github.io')) {
-          // Prepend the repository name to the URL
-          return '/Tree13' + url;
+          // Prepend the repository name to the URL, avoiding double prefixing
+          if (url.startsWith('/')) {
+            return '/Tree13' + url;
+          } else {
+            return '/Tree13/' + url;
+          }
         }
         
         // For local development, use the URL as is
