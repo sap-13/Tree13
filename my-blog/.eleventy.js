@@ -36,6 +36,13 @@ module.exports = function(eleventyConfig) {
     
     return jsDate.toISOString();
   });
+  
+  // Re-implement url filter to work with the existing templates
+  // This is a fixed version that won't add a prefix - it just passes through to the built-in filter
+  eleventyConfig.addFilter("url", function(url) {
+    // The URL will be processed by Eleventy's built-in URL handling with pathPrefix 
+    return url;
+  });
 
   // === Markdown Processing ===
   // Use markdown-it with HTML enabled

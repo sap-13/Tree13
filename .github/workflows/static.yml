@@ -35,10 +35,21 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+      - name: Debug - List files before build
+        run: |
+          echo "=== Listing all Eleventy config files ==="
+          find . -name ".eleventy.js" -o -name "eleventy.config.js"
+          echo "=== Checking base.njk content ==="
+          cat my-blog/src/_layouts/base.njk
       - name: Install dependencies and build
         working-directory: ./my-blog
         run: |
           npm install
+          # Print Eleventy version
+          echo "=== Eleventy Version ==="
+          npx @11ty/eleventy --version
+          # Run build with verbose output
+          npx @11ty/eleventy --dryrun
           npx @11ty/eleventy
       - name: Debug - Check built files
         run: |
@@ -46,10 +57,19 @@ jobs:
           find my-blog/_site -type d | sort
           echo "=== CSS file check ==="
           ls -la my-blog/_site/static/css
-          echo "=== First 15 lines of index.html ==="
-          head -n 15 my-blog/_site/index.html
+          echo "=== First 30 lines of index.html ==="
+          if [ -f my-blog/_site/index.html ]; then
+            head -n 30 my-blog/_site/index.html
+          else
+            echo "ERROR: index.html does not exist!"
+            find my-blog/_site -name "*.html" | head -5
+          fi
           echo "=== Checking link paths ==="
-          grep -r "href=\"" my-blog/_site/index.html | head -10
+          if [ -f my-blog/_site/index.html ]; then
+            grep -r "href=\"" my-blog/_site/index.html | head -10
+          else
+            echo "Cannot check links - index.html not found"
+          fi
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
