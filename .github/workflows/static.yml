@@ -1,5 +1,5 @@
 # Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Deploy to GitHub Pages
 
 on:
   # Runs on pushes targeting the default branch
@@ -31,61 +31,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - name: Debug - List files before build
+        
+      - name: Show directory structure
         run: |
-          echo "=== Listing all Eleventy config files ==="
-          find . -name ".eleventy.js" -o -name "eleventy.config.js"
-          echo "=== Checking base.njk content ==="
-          cat my-blog/src/_layouts/base.njk
-      - name: Install dependencies and build
-        working-directory: ./my-blog
-        run: |
-          npm install
-          # Print Eleventy version
-          echo "=== Eleventy Version ==="
-          npx @11ty/eleventy --version
-          # Run build with verbose output
-          npx @11ty/eleventy --dryrun
-          npx @11ty/eleventy
-      - name: Debug - Check built files
-        run: |
-          echo "=== Directory structure ==="
-          find my-blog/_site -type d | sort
-          echo "=== CSS file check ==="
-          ls -la my-blog/_site/static/css
-          echo "=== First 30 lines of index.html ==="
-          if [ -f my-blog/_site/index.html ]; then
-            head -n 30 my-blog/_site/index.html
-          else
-            echo "ERROR: index.html does not exist!"
-            find my-blog/_site -name "*.html" | head -5
-          fi
-          echo "=== Checking link paths ==="
-          if [ -f my-blog/_site/index.html ]; then
-            grep -r "href=\"" my-blog/_site/index.html | head -10
-          else
-            echo "Cannot check links - index.html not found"
-          fi
+          echo "=== Repository structure ==="
+          ls -la
+          echo "=== Content of the repository root ==="
+          find . -maxdepth 1 -type f
+        
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Copy index.html to root just in case
-        run: |
-          if [ -f my-blog/_site/index.html ]; then
-            cp my-blog/_site/index.html my-blog/_site/Tree13/index.html || true
-            mkdir -p my-blog/_site/Tree13 || true
-            cp my-blog/_site/index.html my-blog/_site/Tree13/index.html || true
-            echo "Copied index.html to Tree13/ directory as fallback"
-          else
-            echo "No index.html to copy"
-          fi
+        
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'my-blog/_site'
+          path: '.'
+          
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
