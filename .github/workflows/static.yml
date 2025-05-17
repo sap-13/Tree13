@@ -72,6 +72,16 @@ jobs:
           fi
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      - name: Copy index.html to root just in case
+        run: |
+          if [ -f my-blog/_site/index.html ]; then
+            cp my-blog/_site/index.html my-blog/_site/Tree13/index.html || true
+            mkdir -p my-blog/_site/Tree13 || true
+            cp my-blog/_site/index.html my-blog/_site/Tree13/index.html || true
+            echo "Copied index.html to Tree13/ directory as fallback"
+          else
+            echo "No index.html to copy"
+          fi
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
