@@ -51,14 +51,6 @@ module.exports = function(eleventyConfig) {
   );
   eleventyConfig.setLibrary("njk", nunjucksEnvironment);
 
-  // === Filter to add pathPrefix to URLs ===
-  eleventyConfig.addFilter("url", function(url) {
-    if (url.startsWith("/")) {
-      return "/Tree13" + url;
-    }
-    return url;
-  });
-
   // === Watch Targets ===
   // Watch Tailwind config and input CSS for changes
   eleventyConfig.addWatchTarget("./tailwind.config.js");

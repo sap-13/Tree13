@@ -39,7 +39,7 @@ jobs:
         working-directory: ./my-blog
         run: |
           npm install
-          npx @11ty/eleventy --pathprefix=Tree13
+          npx @11ty/eleventy
       - name: Debug - Check built files
         run: |
           echo "=== Directory structure ==="
