@@ -34,14 +34,16 @@ jobs:
         
       - name: Prepare site files
         run: |
-          # Copy search-fix.js to the root of the site directory
-          cp my-blog/_site/search-fix.js my-blog/_site/
-          
-          # Revert any lingering my-blog/_site paths
+          # Fix paths in HTML files to ensure they work in the correct location
           cd my-blog/_site
           find . -name "*.html" -type f -exec sed -i 's|/Tree13/my-blog/_site/|/Tree13/|g' {} \;
           find . -name "*.html" -type f -exec sed -i 's|href="/static/|href="/Tree13/static/|g' {} \;
           find . -name "*.html" -type f -exec sed -i 's|src="/static/|src="/Tree13/static/|g' {} \;
+          
+          # Ensure search index has correct paths
+          if [ -f "searchIndex.json" ]; then
+            sed -i 's|/my-blog/_site/|/|g' searchIndex.json
+          fi
         
       - name: Setup Pages
         uses: actions/configure-pages@v5
